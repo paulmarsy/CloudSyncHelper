@@ -12,8 +12,8 @@ namespace CloudSyncHelper.SyncItem
         public SyncItem(string executable, string sourceDirectory, string targetDirectory, int timeout)
             : base(executable)
         {
-            _sourceDirectory = sourceDirectory;
-            _targetDirectory = targetDirectory;
+            _sourceDirectory = ProcessPath(sourceDirectory);
+            _targetDirectory = ProcessPath(targetDirectory);
             _timeout = timeout;
         }
 

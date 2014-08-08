@@ -9,7 +9,7 @@ namespace CloudSyncHelper.DeleteItem
 
         public DeleteItem(string executable, string deleteDirectory) : base(executable)
         {
-            _deleteDirectory = deleteDirectory;
+            _deleteDirectory = ProcessPath(deleteDirectory);
         }
 
         public override bool PerformAction()

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace CloudSyncHelper
@@ -39,6 +40,11 @@ namespace CloudSyncHelper
                 return false;
 
             return true;
+        }
+
+        protected string ProcessPath(string path)
+        {
+            return Environment.ExpandEnvironmentVariables(path);
         }
 
         public abstract bool PerformAction();
