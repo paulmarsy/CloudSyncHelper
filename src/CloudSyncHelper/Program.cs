@@ -13,33 +13,43 @@ namespace CloudSyncHelper
         {
             SyncTimeout = (int)TimeSpan.FromMinutes(double.Parse(ConfigurationManager.AppSettings["TimeoutInMinutes"])).TotalMilliseconds;
 
-            HostFactory.Run(x =>
+            if (args[0] == "backup")
             {
-                x.Service<CloudSyncHelper>(csh =>
+                BackupExistingTargets();
+            }
+            else
+            {
+                HostFactory.Run(x =>
                 {
-                    csh.ConstructUsing(name => new CloudSyncHelper());
-                    csh.WhenStarted(cshStart => cshStart.Start(args));
-                    csh.WhenStopped(cshStop => cshStop.Stop());
-                    csh.WhenShutdown(cshShutdown => cshShutdown.ShutDown());
-                });
-                x.RunAsLocalSystem();
-                x.StartAutomaticallyDelayed();
-                x.EnableShutdown();
-                x.SetDescription("A utility for backing up local files to cloud storage folders when processes exit");
-                x.SetDisplayName("Cloud Sync Helper");
-                x.SetServiceName("CloudSyncHelper");      
-                x.BeforeInstall(() =>
-                {
-                    foreach (var syncItemConfig in SyncItem.SyncItemsConfig.GetAllConfigItems())
+                    x.Service<CloudSyncHelper>(csh =>
                     {
-                        var backupDirectory = Path.ChangeExtension(syncItemConfig.TargetDirectory, "backup");
-                        if (Directory.Exists(backupDirectory))
-                            Directory.Delete(backupDirectory, true);
-                        var syncItem = new SyncItem.SyncItem(string.Empty, syncItemConfig.TargetDirectory, backupDirectory, SyncTimeout);
-                        syncItem.PerformAction();
-                    }
+                        csh.ConstructUsing(() => new CloudSyncHelper());
+                        csh.WhenStarted(cshStart => cshStart.Start(args));
+                        csh.WhenStopped(cshStop => cshStop.Stop());
+                        csh.WhenShutdown(cshShutdown => cshShutdown.ShutDown());
+                    });
+                    x.RunAsLocalSystem();
+                    x.StartAutomaticallyDelayed();
+                    x.EnableShutdown();
+                    x.SetDescription("A utility for backing up local files to cloud storage folders when processes exit");
+                    x.SetDisplayName("Cloud Sync Helper");
+                    x.SetServiceName("CloudSyncHelper");
+                    x.BeforeInstall(BackupExistingTargets);
                 });
-            }); 
+            }
+        }
+
+        private static void BackupExistingTargets()
+        {
+            foreach (var syncItemConfig in SyncItem.SyncItemsConfig.GetAllConfigItems())
+            {
+                var backupDirectory = Path.ChangeExtension(syncItemConfig.TargetDirectory, "backup");
+                if (Directory.Exists(backupDirectory))
+                    Directory.Delete(backupDirectory, true);
+                var syncItem = new SyncItem.SyncItem(string.Empty, syncItemConfig.TargetDirectory,
+                    backupDirectory, SyncTimeout);
+                syncItem.PerformAction();
+            }
         }
     }
 }
