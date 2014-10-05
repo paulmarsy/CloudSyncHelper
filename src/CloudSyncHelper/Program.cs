@@ -13,7 +13,7 @@ namespace CloudSyncHelper
         {
             SyncTimeout = (int)TimeSpan.FromMinutes(double.Parse(ConfigurationManager.AppSettings["TimeoutInMinutes"])).TotalMilliseconds;
 
-            if (args[0] == "backup")
+            if (args != null && args.Length != 0 && args[0] == "backup")
             {
                 BackupExistingTargets();
             }
