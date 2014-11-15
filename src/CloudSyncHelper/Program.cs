@@ -28,7 +28,7 @@ namespace CloudSyncHelper
                         csh.WhenStopped(cshStop => cshStop.Stop());
                         csh.WhenShutdown(cshShutdown => cshShutdown.ShutDown());
                     });
-                    x.RunAsLocalSystem();
+                    x.RunAsPrompt();
                     x.StartAutomaticallyDelayed();
                     x.EnableShutdown();
                     x.SetDescription("A utility for backing up local files to cloud storage folders when processes exit");
