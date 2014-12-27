@@ -54,18 +54,8 @@ namespace CloudSyncHelper
         {
             lock (_timer)
             {
-                foreach (var item in _items.Where(item => item.NeedsActionPerforming()))
-                {
-                    item.UpdateState(Item.States.Pending);
-
-                    if (!item.IsExecutableRunning())
-                    {
-                        if (item.PerformAction())
-                            item.UpdateState(Item.States.Succeeded);
-                        else
-                            item.UpdateState(Item.States.Failed);
-                    }
-                }
+                foreach (var item in _items.Where(item => !item.IsExecutableRunning() && item.State != Item.States.Succeeded))
+                    item.UpdateState(item.PerformAction() ? Item.States.Succeeded : Item.States.Failed);
             }
         }
     }

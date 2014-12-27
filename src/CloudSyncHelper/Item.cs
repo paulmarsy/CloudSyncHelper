@@ -4,42 +4,35 @@ using System.IO;
 
 namespace CloudSyncHelper
 {
+    using System.Linq;
+
     public abstract class Item
     {
         public enum States
         {
             NotRun,
-            Pending,
             Succeeded,
             Failed
         }
 
-        private readonly string _executable;
-        private States _state;
+        private readonly string _processName;
 
         protected Item(string executable)
         {
-            _executable = executable;
-            _state = States.NotRun;
+            _processName = Path.GetFileNameWithoutExtension(executable);
+            State = States.NotRun;
         }
+
+        public States State { get; private set; }
 
         public void UpdateState(States newState)
         {
-            _state = newState;
+            State = newState;
         }
 
         public bool IsExecutableRunning()
         {
-            var processes = Process.GetProcessesByName(Path.GetFileNameWithoutExtension(_executable));
-            return processes.Length > 0;
-        }
-
-        public bool NeedsActionPerforming()
-        {
-            if (_state == States.Succeeded && !IsExecutableRunning())
-                return false;
-
-            return true;
+            return Process.GetProcesses(".").Any(x => x.ProcessName == _processName);
         }
 
         protected string ProcessPath(string path)
