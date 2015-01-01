@@ -1,29 +1,38 @@
-﻿using System;
-using System.IO;
-
-namespace CloudSyncHelper.DeleteItem
+﻿namespace CloudSyncHelper.DeleteItem
 {
+    using System.IO;
+    using System.Diagnostics;
+    using Microsoft.Win32;
+
     public class DeleteItem : Item
     {
+        private static readonly string SdeletePath = Path.Combine(Program.AppLocation, "sdelete.exe");
         private readonly string _deleteDirectory;
 
-        public DeleteItem(string executable, string deleteDirectory) : base(executable)
+        static DeleteItem()
+        {
+            Registry.CurrentUser.CreateSubKey(@"Software\Sysinternals\SDelete").SetValue("EulaAccepted", 1, RegistryValueKind.DWord);
+        }
+
+        public DeleteItem(string item, string deleteDirectory) 
+            : base(item)
         {
             _deleteDirectory = ProcessPath(deleteDirectory);
         }
 
-        public override bool PerformAction()
+        protected override bool InternalPerformAction()
         {
-            try
-            {
-                File.SetAttributes(_deleteDirectory, FileAttributes.Normal);
-                Directory.Delete(_deleteDirectory, true);
+            if (!Directory.Exists(_deleteDirectory))
                 return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+
+            File.SetAttributes(_deleteDirectory, FileAttributes.Normal);
+            foreach (var entry in Directory.EnumerateFileSystemEntries(_deleteDirectory, "*", SearchOption.AllDirectories))
+                File.SetAttributes(entry, FileAttributes.Normal);
+
+            var sdeleteProcess = Process.Start(SdeletePath, string.Format("-s \"{0}\"", _deleteDirectory));
+            sdeleteProcess.WaitForExit();
+
+            return !Directory.Exists(_deleteDirectory);
         }
     }
 }

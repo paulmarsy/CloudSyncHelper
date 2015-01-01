@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-
-namespace CloudSyncHelper.DeleteItem
+﻿namespace CloudSyncHelper.DeleteItem
 {
+    using System.Collections.Generic;
+    using System.Configuration;
+    using System.Linq;
+
     public static class DeleteItemsConfig
     {
         public static IList<DeleteObjectConfigElement> GetAllConfigItems()

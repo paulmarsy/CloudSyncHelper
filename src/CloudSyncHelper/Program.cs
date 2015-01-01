@@ -1,32 +1,41 @@
-﻿using System;
-using System.Configuration;
-using System.IO;
-using Topshelf;
-
-namespace CloudSyncHelper
+﻿namespace CloudSyncHelper
 {
+    using System.Reflection;
+    using System;
+    using System.Configuration;
+    using System.IO;
+    using Topshelf;
+
     public static class Program
     {
-        public static int SyncTimeout;
+        public static readonly int SyncTimeout = (int)TimeSpan.FromMinutes(double.Parse(ConfigurationManager.AppSettings["TimeoutInMinutes"])).TotalMilliseconds;
+        public static readonly string AppLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         public static void Main(string[] args)
         {
-            SyncTimeout = (int)TimeSpan.FromMinutes(double.Parse(ConfigurationManager.AppSettings["TimeoutInMinutes"])).TotalMilliseconds;
-
             if (args != null && args.Length != 0 && args[0] == "backup")
-            {
                 BackupExistingTargets();
-            }
             else
-            {
                 HostFactory.Run(x =>
                 {
                     x.Service<CloudSyncHelper>(csh =>
                     {
                         csh.ConstructUsing(() => new CloudSyncHelper());
-                        csh.WhenStarted(cshStart => cshStart.Start(args));
+
+                        // Service Start/Stop
+                        csh.WhenStarted(cshStart => cshStart.Start());
                         csh.WhenStopped(cshStop => cshStop.Stop());
+
+                        // Service Pause/Continue
+                        csh.WhenPaused(cshPause => cshPause.Pause());
+                        csh.WhenContinued(cshContinue => cshContinue.Continue());
+
+                        // Service Shutdown
                         csh.WhenShutdown(cshShutdown => cshShutdown.ShutDown());
+                    });
+                    x.EnableServiceRecovery(serviceRecovery =>
+                    {
+                        serviceRecovery.RestartService(1);
                     });
                     x.RunAsPrompt();
                     x.StartAutomaticallyDelayed();
@@ -36,7 +45,6 @@ namespace CloudSyncHelper
                     x.SetServiceName("CloudSyncHelper");
                     x.BeforeInstall(BackupExistingTargets);
                 });
-            }
         }
 
         private static void BackupExistingTargets()

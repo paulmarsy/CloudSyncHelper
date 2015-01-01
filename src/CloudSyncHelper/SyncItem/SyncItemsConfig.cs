@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-
-namespace CloudSyncHelper.SyncItem
+﻿namespace CloudSyncHelper.SyncItem
 {
+    using System.Collections.Generic;
+    using System.Configuration;
+    using System.Linq;
+
     public static class SyncItemsConfig
     {
         public static IList<SyncObjectConfigElement> GetAllConfigItems()

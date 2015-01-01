@@ -1,25 +1,23 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-
-namespace CloudSyncHelper
+﻿namespace CloudSyncHelper
 {
-    using System.Linq;
+    using System;
+    using System.IO;  
 
     public abstract class Item
     {
         public enum States
         {
             NotRun,
+            Pending,
             Succeeded,
             Failed
         }
 
-        private readonly string _processName;
+        public readonly string ItemName;
 
-        protected Item(string executable)
+        protected Item(string item)
         {
-            _processName = Path.GetFileNameWithoutExtension(executable);
+            ItemName = Path.GetFileNameWithoutExtension(item);
             State = States.NotRun;
         }
 
@@ -27,19 +25,29 @@ namespace CloudSyncHelper
 
         public void UpdateState(States newState)
         {
+            Console.WriteLine("Updating {0} on {1} from {2} to {3}", this.GetType().Name, ItemName, State, newState);
             State = newState;
         }
 
-        public bool IsExecutableRunning()
+        protected static string ProcessPath(string path)
         {
-            return Process.GetProcesses(".").Any(x => x.ProcessName == _processName);
+            return Environment.ExpandEnvironmentVariables(path).Replace("%CD%", Program.AppLocation);
         }
 
-        protected string ProcessPath(string path)
+        public bool PerformAction()
         {
-            return Environment.ExpandEnvironmentVariables(path);
+            Console.WriteLine("Performing {0} on {1}", this.GetType().Name, ItemName);
+            try
+            {
+                return InternalPerformAction();
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e.Message);
+                return false;
+            }
         }
 
-        public abstract bool PerformAction();
+        protected abstract bool InternalPerformAction();
     }
 }
